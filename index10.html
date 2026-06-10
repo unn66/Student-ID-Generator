@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Student ID Card Generator - NMAM INSTITUTE OF TECHNOLOGY</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      min-height:100vh;padding:20px;
+    }
+    .container{
+      max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start}
+    .form-section,.preview-section{
+      background:white;padding:30px;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+    h1{
+      color:#667eea;margin-bottom:10px;font-size:28px}
+    .subtitle{
+      color:#666;margin-bottom:25px;font-size:14px}
+    .form-group{
+      margin-bottom:20px}
+    label{
+      display:block;margin-bottom:8px;color:#333;font-weight:600;font-size:14px}
+    input,select{
+      width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;transition:all .3s}
+    input:focus,select:focus{
+      outline:none;border-color:#667eea;box-shadow:0 0 0 3px rgba(102,126,234,.1)}
+    .photo-upload{
+      position:relative;width:150px;height:150px;margin:0 auto 20px;border:3px dashed #667eea;border-radius:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;transition:all .3s}
+    .photo-upload:hover{
+      border-color:#764ba2;transform:scale(1.05)}
+    .photo-upload input{
+      display:none}
+    .photo-preview{
+      width:100%;height:100%;object-fit:cover;display:none}
+    .upload-text{
+      text-align:center;color:#667eea;font-size:14px}
+    .btn{
+      width:100%;padding:14px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;transition:all .3s;margin-top:10px}
+    .btn:hover{
+      transform:translateY(-2px);box-shadow:0 10px 20px rgba(102,126,234,.3)}
+    .btn:active{
+      transform:translateY(0)}
+    .btn-secondary{
+      background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%)}
+    .id-card{
+      width:350px;height:550px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:20px;padding:20px;box-shadow:0 15px 35px rgba(0,0,0,.3);position:relative;overflow:hidden;margin:0 auto}
+    .id-card::before{
+      content:'';position:absolute;top:-50%;right:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.1) 0%,transparent 70%);animation:rotate 20s linear infinite}
+    @keyframes rotate{
+      from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    .card-header{
+      text-align:center;color:white;margin-bottom:15px;position:relative;z-index:1}
+    .card-header h2{
+      font-size:20px;margin-bottom:3px;text-shadow:2px 2px 4px rgba(0,0,0,.3)}
+    .card-header p{
+      font-size:11px;opacity:.9}
+    .card-photo{
+      width:120px;height:120px;border-radius:50%;border:4px solid white;margin:0 auto 15px;background:white;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;z-index:1;box-shadow:0 10px 25px rgba(0,0,0,.3)}
+    .card-photo img{
+      width:100%;height:100%;object-fit:cover}
+    .card-photo-placeholder{
+      font-size:50px;color:#667eea}
+    .card-info{
+      background:white;border-radius:15px;padding:15px;position:relative;z-index:1}
+    .info-row{
+      margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+    .info-label{
+      font-size:10px;color:#666;font-weight:600;text-transform:uppercase}
+    .info-value{
+      font-size:12px;color:#333;font-weight:600;text-align:right;max-width:200px;word-break:break-word}
+    .qr-section{
+      background:white;padding:10px;border-radius:10px;margin-top:12px;text-align:center;position:relative;z-index:1}
+    #qrcode{display:inline-block}
+    .qr-label{
+      font-size:9px;color:#667eea;margin-top:5px;font-weight:600}
+    .preview-actions{
+      display:flex;gap:10px;margin-top:20px}
+    .preview-actions button{
+      flex:1}
+    .hidden{
+      display:none}
+    .theme-selector{
+      display:flex;gap:10px;margin-bottom:20px}
+    .theme-option{
+      width:40px;height:40px;border-radius:10px;cursor:pointer;border:3px solid transparent;transition:all .3s}
+    .theme-option:hover,.theme-option.active{border-color:#333;transform:scale(1.1)}
+    .theme-purple{background:linear-gradient(
+      135deg,#667eea 0%,#764ba2 100%)}
+    .theme-blue{
+      background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%)}
+    .theme-red{
+      background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%)}
+    .theme-green{
+      background:linear-gradient(135deg,#43e97b 0%,#38f9d7 100%)}
+    .roll-number-input{
+      display:grid;grid-template-columns:60px 50px 50px 80px;gap:8px;margin-top:8px}
+    .roll-number-input input{
+      text-align:center;padding:10px 5px;font-weight:600}
+    .dob-input{
+      display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:8px}
+    .dob-input input{
+      text-align:center}
+    .input-helper{
+      font-size:11px;color:#666;margin-top:5px}
+    .error-message{
+      color:#f5576c;font-size:12px;margin-top:5px}
+    .saved-list{
+      margin-top:20px}
+    .saved-item{
+      display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;border:1px solid #eee;margin-bottom:10px}
+    .saved-thumb{
+      width:50px;height:50px;border-radius:6px;background:#f5f5f5;overflow:hidden;display:flex;align-items:center;justify-content:center}
+    .saved-meta{
+      flex:1}
+    .saved-meta small{
+      display:block;color:#666}
+    .saved-actions button{margin-left:8px}
+    @media(max-width:768px){
+      .container{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="form-section">
+      <h1>🎓 Student ID Generator</h1>
+      <p class="subtitle">NMAM INSTITUTE OF TECHNOLOGY</p>
+
+      <form id="studentForm" autocomplete="off">
+        <div class="form-group">
+          <label>Upload Photo</label>
+          <div class="photo-upload" id="photoUpload">
+            <input type="file" id="photoInput" accept="image/*">
+            <img id="photoPreview" class="photo-preview" alt="Student Photo">
+            <div class="upload-text" id="uploadText">📷<br>Click to Upload</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" id="fullName" required placeholder="Enter your full name">
+        </div>
+
+        <div class="form-group">
+          <label>Roll Number *</label>
+          <div class="roll-number-input">
+            <input type="text" id="rollPrefix" value="NNM" readonly>
+            <input type="text" id="rollYear" maxlength="2" placeholder="24" required>
+            <input type="text" id="rollDept" maxlength="2" placeholder="CS" required style="text-transform:uppercase">
+            <input type="text" id="rollNumber" maxlength="3" placeholder="001" required>
+          </div>
+          <p class="input-helper">Format: NNM + Year(00-24) + Dept(CS/EE/ME/CE/EC/IT) + Number(000-999)</p>
+          <p id="rollError" class="error-message hidden"></p>
+        </div>
+
+        <div class="form-group">
+          <label>Email Address *</label>
+          <input type="email" id="email" required placeholder="student@nmamit.in">
+        </div>
+
+        <div class="form-group">
+          <label>Date of Birth *</label>
+          <div class="dob-input">
+            <input type="text" id="dobDay" maxlength="2" placeholder="DD" required>
+            <input type="text" id="dobMonth" maxlength="2" placeholder="MM" required>
+            <input type="text" id="dobYear" maxlength="4" placeholder="YYYY" required>
+          </div>
+          <p class="input-helper">Enter as: Day / Month / Year</p>
+          <p id="dobError" class="error-message hidden"></p>
+        </div>
+
+        <div class="form-group">
+          <label>Department *</label>
+          <select id="department" required>
+            <option value="">Select Department</option>
+            <option value="CS" data-full="Computer Science Engineering">Computer Science Engineering (CS)</option>
+            <option value="EE" data-full="Electrical Engineering">Electrical Engineering (EE)</option>
+            <option value="ME" data-full="Mechanical Engineering">Mechanical Engineering (ME)</option>
+            <option value="CE" data-full="Civil Engineering">Civil Engineering (CE)</option>
+            <option value="EC" data-full="Electronics & Communication">Electronics & Communication (EC)</option>
+            <option value="IT" data-full="Information Technology">Information Technology (IT)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Year of Study *</label>
+          <select id="year" required>
+            <option value="">Select Year</option>
+            <option value="1st Year">1st Year</option>
+            <option value="2nd Year">2nd Year</option>
+            <option value="3rd Year">3rd Year</option>
+            <option value="4th Year">4th Year</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Blood Group</label>
+          <select id="bloodGroup">
+            <option value="">Select Blood Group</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Card Theme</label>
+          <div class="theme-selector">
+            <div class="theme-option theme-purple active" data-theme="purple"></div>
+            <div class="theme-option theme-blue" data-theme="blue"></div>
+            <div class="theme-option theme-red" data-theme="red"></div>
+            <div class="theme-option theme-green" data-theme="green"></div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn" id="generateBtn">Generate ID Card</button>
+        <button type="button" class="btn btn-secondary" id="clearFormBtn" style="margin-top:10px">Clear Form</button>
+      </form>
+    </div>
+
+    <div class="preview-section">
+      <h1>Preview</h1>
+      <p class="subtitle">Your ID card will appear here</p>
+
+      <div id="idCard" class="id-card">
+        <div class="card-header">
+          <h2>NMAM INSTITUTE OF TECHNOLOGY</h2>
+          <p>Student Identity Card</p>
+        </div>
+
+        <div class="card-photo">
+          <span class="card-photo-placeholder">👤</span>
+          <img id="cardPhoto" style="display:none">
+        </div>
+
+        <div class="card-info">
+          <div class="info-row"><span class="info-label">Name</span><span class="info-value" id="cardName">-</span></div>
+          <div class="info-row"><span class="info-label">Roll Number</span><span class="info-value" id="cardRollNumber">-</span></div>
+          <div class="info-row"><span class="info-label">Email</span><span class="info-value" id="cardEmail">-</span></div>
+          <div class="info-row"><span class="info-label">Date of Birth</span><span class="info-value" id="cardDob">-</span></div>
+          <div class="info-row"><span class="info-label">Department</span><span class="info-value" id="cardDepartment">-</span></div>
+          <div class="info-row"><span class="info-label">Year</span><span class="info-value" id="cardYear">-</span></div>
+          <div class="info-row"><span class="info-label">Blood Group</span><span class="info-value" id="cardBloodGroup">-</span></div>
+
+          <div class="qr-section">
+            <div id="qrcode"></div>
+            <p class="qr-label">Scan to Verify Student</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-actions hidden" id="previewActions">
+        <button class="btn" onclick="downloadCard()">📥 Download Card</button>
+        <button class="btn btn-secondary" id="createNewBtn">🔄 Create New</button>
+      </div>
+
+      <div class="saved-list" id="savedList"></div>
+    </div>
+  </div>
+
+  <script>
+    // ====== Fixed & improved JavaScript (logic) ======
+    let studentData = {};
+    let currentTheme = 'purple';
+    let editingId = null; // if set, form submits will update existing card
+    const themes = {
+      purple: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      blue: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+      red: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+      green: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
+    };
+    const validDepts = ['CS','EE','ME','CE','EC','IT'];
+    const STORAGE_KEY = 'studentCards'; // stores array of card objects
+
+    // Helpers
+    function show(el){ el.classList.remove('hidden'); }
+    function hide(el){ el.classList.add('hidden'); }
+
+    // Photo upload
+    document.getElementById('photoUpload').addEventListener('click', () => {
+      document.getElementById('photoInput').click();
+    });
+    document.getElementById('photoInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const src = ev.target.result;
+        document.getElementById('photoPreview').src = src;
+        document.getElementById('photoPreview').style.display = 'block';
+        document.getElementById('uploadText').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Theme selection
+    document.querySelectorAll('.theme-option').forEach(option => {
+      option.addEventListener('click', function(){
+        document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
+        this.classList.add('active');
+        currentTheme = this.dataset.theme;
+        document.getElementById('idCard').style.background = themes[currentTheme];
+      });
+    });
+
+    // Validation functions
+    function validateRollNumber(){
+      const yearEl = document.getElementById('rollYear');
+      const deptEl = document.getElementById('rollDept');
+      const numEl = document.getElementById('rollNumber');
+      const year = yearEl?.value || '';
+      const dept = (deptEl?.value || '').toUpperCase();
+      const number = numEl?.value || '';
+      const errorEl = document.getElementById('rollError');
+
+      if (year && (isNaN(parseInt(year)) || parseInt(year) < 0 || parseInt(year) > 24)){
+        errorEl.textContent = 'Year must be between 00 and 24';
+        errorEl.classList.remove('hidden');
+        return false;
+      }
+      if (dept && !validDepts.includes(dept)){
+        errorEl.textContent = 'Department code must be: CS, EE, ME, CE, EC, or IT';
+        errorEl.classList.remove('hidden');
+        return false;
+      }
+      if (number && (isNaN(parseInt(number)) || parseInt(number) < 0 || parseInt(number) > 999)){
+        errorEl.textContent = 'Number must be between 000 and 999';
+        errorEl.classList.remove('hidden');
+        return false;
+      }
+      errorEl.classList.add('hidden');
+      return true;
+    }
+
+    function validateDOB(){
+      const day = document.getElementById('dobDay').value;
+      const month = document.getElementById('dobMonth').value;
+      const year = document.getElementById('dobYear').value;
+      const errorEl = document.getElementById('dobError');
+
+      if (!day && !month && !year) { errorEl.classList.add('hidden'); return true; }
+
+      const dayNum = parseInt(day);
+      const monthNum = parseInt(month);
+      const yearNum = parseInt(year);
+      const thisYear = new Date().getFullYear();
+
+      if (isNaN(dayNum) || dayNum < 1 || dayNum > 31) {
+        errorEl.textContent = 'Day must be between 01 and 31';
+        errorEl.classList.remove('hidden');
+        return false;
+      }
+      if (isNaN(monthNum) || monthNum < 1 || monthNum > 12) {
+        errorEl.textContent = 'Month must be between 01 and 12';
+        errorEl.classList.remove('hidden');
+        return false;
+      }
+      if (isNaN(yearNum) || yearNum < 1900 || yearNum > thisYear) {
+        errorEl.textContent = 'Please enter a valid year';
+        errorEl.classList.remove('hidden');
+        return false;
+      }
+
+      // check valid date for the month
+      const maxDays = new Date(yearNum, monthNum, 0).getDate();
+      if (dayNum > maxDays) {
+        errorEl.textContent = `Invalid date for the given month (max ${maxDays})`;
+        errorEl.classList.remove('hidden');
+        return false;
+      }
+
+      errorEl.classList.add('hidden');
+      return true;
+    }
+
+    // Email validation: must end with @nmamit.in
+    function validateEmailField(){
+      const emailEl = document.getElementById('email');
+      const val = (emailEl.value || '').trim();
+      if (val === '') {
+        emailEl.style.borderColor = '#e0e0e0';
+        emailEl.setCustomValidity('');
+        return true; // required attribute will handle empty case
+      }
+      if (!val.toLowerCase().endsWith('@nmamit.in')) {
+        emailEl.style.borderColor = '#f5576c';
+        emailEl.setCustomValidity('Email must end with @nmamit.in');
+        return false;
+      } else {
+        emailEl.style.borderColor = '#e0e0e0';
+        emailEl.setCustomValidity('');
+        return true;
+      }
+    }
+
+    document.getElementById('email').addEventListener('input', validateEmailField);
+    if (document.getElementById('rollYear')) document.getElementById('rollYear').addEventListener('input', validateRollNumber);
+    if (document.getElementById('rollDept')) document.getElementById('rollDept').addEventListener('input', function(){
+      this.value = this.value.toUpperCase();
+      validateRollNumber();
+    });
+    if (document.getElementById('rollNumber')) document.getElementById('rollNumber').addEventListener('input', validateRollNumber);
+    if (document.getElementById('dobDay')) document.getElementById('dobDay').addEventListener('input', validateDOB);
+    if (document.getElementById('dobMonth')) document.getElementById('dobMonth').addEventListener('input', validateDOB);
+    if (document.getElementById('dobYear')) document.getElementById('dobYear').addEventListener('input', validateDOB);
+
+    // Storage helpers
+    function getSavedCards(){
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        const arr = JSON.parse(raw);
+        return Array.isArray(arr) ? arr : [];
+      } catch (err) {
+        console.warn('Failed to parse saved cards', err);
+        return [];
+      }
+    }
+    function saveCardsArray(arr){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+      renderSavedList();
+    }
+
+    // Render saved cards list
+    function renderSavedList(){
+      const listEl = document.getElementById('savedList');
+      const arr = getSavedCards();
+      listEl.innerHTML = '';
+      if (!arr || arr.length === 0){
+        listEl.innerHTML = '<p style="color:#666">No saved cards yet.</p>';
+        return;
+      }
+      arr.slice().reverse().forEach((card, idxReversed) => {
+        // idxReversed 0 => last saved; find actual index in arr
+        const actualIndex = arr.length - 1 - idxReversed;
+        const item = document.createElement('div');
+        item.className = 'saved-item';
+        const thumb = document.createElement('div');
+        thumb.className = 'saved-thumb';
+        if (card.photo){
+          const img = document.createElement('img');
+          img.src = card.photo;
+          img.style.width = '100%';
+          img.style.height = '100%';
+          img.style.objectFit = 'cover';
+          thumb.appendChild(img);
+        } else {
+          thumb.textContent = '👤';
+        }
+        const meta = document.createElement('div');
+        meta.className = 'saved-meta';
+        const name = document.createElement('strong');
+        name.textContent = card.fullName || '-';
+        const small = document.createElement('small');
+        small.textContent = `${card.rollNumber || '-'} • ${card.department || '-'}`;
+        meta.appendChild(name);
+        meta.appendChild(small);
+
+        const actions = document.createElement('div');
+        actions.className = 'saved-actions';
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn';
+        editBtn.style.width = 'auto';
+        editBtn.textContent = 'Edit';
+        editBtn.addEventListener('click', () => editCard(actualIndex));
+        const delBtn = document.createElement('button');
+        delBtn.className = 'btn btn-secondary';
+        delBtn.style.width = 'auto';
+        delBtn.textContent = 'Delete';
+        delBtn.addEventListener('click', () => deleteCard(actualIndex));
+        actions.appendChild(editBtn);
+        actions.appendChild(delBtn);
+
+        item.appendChild(thumb);
+        item.appendChild(meta);
+        item.appendChild(actions);
+        listEl.appendChild(item);
+      });
+    }
+
+    // Form submit -> create/update card
+    document.getElementById('studentForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      if (!validateRollNumber()){ alert('Please fix the roll number errors'); return; }
+      if (!validateDOB()){ alert('Please fix the date of birth errors'); return; }
+      if (!validateEmailField()){ alert('Please enter a valid email ending with @nmamit.in'); return; }
+
+      const fullName = document.getElementById('fullName').value.trim();
+      const rollYear = (document.getElementById('rollYear').value || '').padStart(2,'0');
+      const rollDept = (document.getElementById('rollDept').value || '').toUpperCase();
+      const rollNum = (document.getElementById('rollNumber').value || '').padStart(3,'0');
+      const rollNumber = `NNM${rollYear}${rollDept}${rollNum}`;
+
+      const email = document.getElementById('email').value.trim();
+      const dobDay = (document.getElementById('dobDay').value || '').padStart(2,'0');
+      const dobMonth = (document.getElementById('dobMonth').value || '').padStart(2,'0');
+      const dobYear = document.getElementById('dobYear').value.trim();
+      const dob = `${dobDay}/${dobMonth}/${dobYear}`;
+
+      const departmentCode = document.getElementById('department').value;
+      const departmentFull = document.getElementById('department').selectedOptions[0]?.dataset.full || departmentCode;
+      const year = document.getElementById('year').value;
+      const bloodGroup = document.getElementById('bloodGroup').value || 'N/A';
+      const photoSrc = document.getElementById('photoPreview').src || null;
+
+      // check duplicate roll (if creating new or changing roll while editing)
+      const existing = getSavedCards();
+      const duplicate = existing.find(c => c.rollNumber === rollNumber && c.id !== editingId);
+      if (duplicate) {
+        alert('This roll number already exists. Please use a unique roll number.');
+        return;
+      }
+
+      const cardObj = {
+        id: editingId || Date.now(),
+        fullName,
+        rollNumber,
+        email,
+        dob,
+        department: departmentFull,
+        deptCode: departmentCode,
+        year,
+        bloodGroup,
+        theme: currentTheme,
+        issueDate: new Date().toLocaleString(),
+        photo: photoSrc && photoSrc.startsWith('data:') ? photoSrc : null
+      };
+
+      if (editingId) {
+        // update
+        const idx = existing.findIndex(c => c.id === editingId);
+        if (idx !== -1) existing[idx] = cardObj;
+      } else {
+        existing.push(cardObj);
+      }
+      saveCardsArray(existing);
+      editingId = null;
+      studentData = cardObj;
+      updatePreviewFromData(studentData);
+      // show preview actions
+      show(document.getElementById('previewActions'));
+      // scroll to preview (optional)
+      document.getElementById('idCard').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // Update preview helper
+    function updatePreviewFromData(data){
+      currentTheme = data.theme || 'purple';
+      document.getElementById('idCard').style.background = themes[currentTheme];
+      document.querySelectorAll('.theme-option').forEach(o => {
+        o.classList.toggle('active', o.dataset.theme === currentTheme);
+      });
+
+      document.getElementById('cardName').textContent = data.fullName || '-';
+      document.getElementById('cardRollNumber').textContent = data.rollNumber || '-';
+      document.getElementById('cardEmail').textContent = data.email || '-';
+      document.getElementById('cardDob').textContent = data.dob || '-';
+      document.getElementById('cardDepartment').textContent = data.department || '-';
+      document.getElementById('cardYear').textContent = data.year || '-';
+      document.getElementById('cardBloodGroup').textContent = data.bloodGroup || '-';
+
+      if (data.photo){
+        document.getElementById('cardPhoto').src = data.photo;
+        document.getElementById('cardPhoto').style.display = 'block';
+        const placeholder = document.querySelector('.card-photo-placeholder');
+        if (placeholder) placeholder.style.display = 'none';
+      } else {
+        document.getElementById('cardPhoto').style.display = 'none';
+        const placeholder = document.querySelector('.card-photo-placeholder');
+        if (placeholder) placeholder.style.display = 'block';
+      }
+
+      // QR code: encode student details (works offline & locally)
+      document.getElementById('qrcode').innerHTML = '';
+      const qrText = `NMAMIT ID\nName: ${data.fullName}\nRoll: ${data.rollNumber}\nDept: ${data.department}\nEmail: ${data.email}`;
+      try {
+        new QRCode(document.getElementById('qrcode'), {
+          text: qrText,
+          width: 90,
+          height: 90,
+          colorDark: '#333',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H
+        });
+      } catch (err) {
+        console.warn('QR generation failed:', err);
+      }
+
+      show(document.getElementById('previewActions'));
+    }
+
+    // Download card as PNG
+    function downloadCard(){
+      const card = document.getElementById('idCard');
+      const dataToName = studentData && studentData.rollNumber ? studentData.rollNumber : ('card-' + Date.now());
+      html2canvas(card, { scale: 3, backgroundColor: null }).then(canvas => {
+        const link = document.createElement('a');
+        const name = `student-id-${dataToName}.png`;
+        link.download = name;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      }).catch(err => {
+        alert('Failed to generate image: ' + err);
+      });
+    }
+    window.downloadCard = downloadCard;
+
+    // Reset / Create new
+    function resetForm(){
+      editingId = null;
+      studentData = {};
+      document.getElementById('studentForm').reset();
+      document.getElementById('rollPrefix').value = 'NNM';
+      document.getElementById('photoPreview').style.display = 'none';
+      document.getElementById('photoPreview').src = '';
+      document.getElementById('uploadText').style.display = 'block';
+      document.getElementById('cardPhoto').style.display = 'none';
+      const placeholder = document.querySelector('.card-photo-placeholder');
+      if (placeholder) placeholder.style.display = 'block';
+      document.getElementById('cardName').textContent = '-';
+      document.getElementById('cardRollNumber').textContent = '-';
+      document.getElementById('cardEmail').textContent = '-';
+      document.getElementById('cardDob').textContent = '-';
+      document.getElementById('cardDepartment').textContent = '-';
+      document.getElementById('cardYear').textContent = '-';
+      document.getElementById('cardBloodGroup').textContent = '-';
+      document.getElementById('qrcode').innerHTML = '';
+      hide(document.getElementById('previewActions'));
+      currentTheme = 'purple';
+      document.getElementById('idCard').style.background = themes[currentTheme];
+      document.querySelectorAll('.theme-option').forEach(o => o.classList.toggle('active', o.dataset.theme === 'purple'));
+      document.getElementById('photoInput').value = '';
+      document.getElementById('rollError').classList.add('hidden');
+      document.getElementById('dobError').classList.add('hidden');
+      const emailEl = document.getElementById('email'); if (emailEl){ emailEl.style.borderColor = '#e0e0e0'; emailEl.setCustomValidity(''); }
+    }
+    document.getElementById('createNewBtn').addEventListener('click', resetForm);
+    document.getElementById('clearFormBtn').addEventListener('click', resetForm);
+
+    // Edit card by index
+    function editCard(index){
+      const arr = getSavedCards();
+      if (!arr[index]) return alert('Card not found');
+      const card = arr[index];
+      editingId = card.id;
+      studentData = card;
+
+      // populate form values
+      document.getElementById('fullName').value = card.fullName || '';
+      document.getElementById('email').value = card.email || '';
+
+      if (card.rollNumber){
+        const rn = card.rollNumber.replace(/^NNM/,'');
+        if (rn.length >= 7) {
+          document.getElementById('rollYear').value = rn.slice(0,2);
+          document.getElementById('rollDept').value = rn.slice(2,4);
+          document.getElementById('rollNumber').value = rn.slice(4,7);
+        }
+      }
+
+      if (card.dob){
+        const parts = card.dob.split('/');
+        if (parts.length === 3){
+          document.getElementById('dobDay').value = parts[0];
+          document.getElementById('dobMonth').value = parts[1];
+          document.getElementById('dobYear').value = parts[2];
+        }
+      }
+
+      if (card.deptCode){
+        const deptSelect = document.getElementById('department');
+        for (let i=0;i<deptSelect.options.length;i++){
+          if (deptSelect.options[i].value === card.deptCode){
+            deptSelect.selectedIndex = i;
+            break;
+          }
+        }
+      }
+      document.getElementById('year').value = card.year || '';
+      document.getElementById('bloodGroup').value = card.bloodGroup || '';
+
+      if (card.photo){
+        document.getElementById('photoPreview').src = card.photo;
+        document.getElementById('photoPreview').style.display = 'block';
+        document.getElementById('uploadText').style.display = 'none';
+      } else {
+        document.getElementById('photoPreview').style.display = 'none';
+        document.getElementById('uploadText').style.display = 'block';
+      }
+
+      // update preview
+      updatePreviewFromData(card);
+      // scroll to form so user can change and resubmit
+      document.getElementById('studentForm').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Delete card by index
+    function deleteCard(index){
+      if (!confirm('Are you sure you want to delete this card?')) return;
+      const arr = getSavedCards();
+      if (!arr[index]) return alert('Card not found');
+      const removed = arr.splice(index,1);
+      saveCardsArray(arr);
+      // if preview displayed equals deleted card, reset preview
+      if (studentData && removed[0] && studentData.id === removed[0].id) {
+        resetForm();
+      }
+    }
+
+    // On page load restore last saved card and render saved list
+    window.addEventListener('load', () => {
+      renderSavedList();
+      const savedArr = getSavedCards();
+      if (!savedArr || savedArr.length === 0) return;
+      const last = savedArr[savedArr.length - 1];
+      studentData = last;
+      // Restore form fields so user can edit if needed
+      document.getElementById('fullName').value = studentData.fullName || '';
+      document.getElementById('email').value = studentData.email || '';
+
+      if (studentData.rollNumber){
+        const rn = studentData.rollNumber.replace(/^NNM/,'');
+        if (rn.length >= 7) {
+          document.getElementById('rollYear').value = rn.slice(0,2);
+          document.getElementById('rollDept').value = rn.slice(2,4);
+          document.getElementById('rollNumber').value = rn.slice(4,7);
+        }
+      }
+
+      if (studentData.dob){
+        const parts = studentData.dob.split('/');
+        if (parts.length === 3){
+          document.getElementById('dobDay').value = parts[0];
+          document.getElementById('dobMonth').value = parts[1];
+          document.getElementById('dobYear').value = parts[2];
+        }
+      }
+
+      if (studentData.deptCode){
+        const deptSelect = document.getElementById('department');
+        for (let i=0;i<deptSelect.options.length;i++){
+          if (deptSelect.options[i].value === studentData.deptCode){
+            deptSelect.selectedIndex = i;
+            break;
+          }
+        }
+      }
+      document.getElementById('year').value = studentData.year || '';
+      document.getElementById('bloodGroup').value = studentData.bloodGroup || '';
+
+      if (studentData.photo){
+        document.getElementById('photoPreview').src = studentData.photo;
+        document.getElementById('photoPreview').style.display = 'block';
+        document.getElementById('uploadText').style.display = 'none';
+      }
+
+      updatePreviewFromData(studentData);
+    });
+  </script>
+</body>
+</html>
